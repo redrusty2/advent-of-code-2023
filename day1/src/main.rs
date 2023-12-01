@@ -14,7 +14,9 @@ fn part_two(input: String) {
     let numbers = vec![
         "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
-    let win_size = 6;
+    let win_size = 5;
+    let mut check_count = 0;
+
     let calibrate: u32 = input
         .lines()
         .map(|line| {
@@ -24,11 +26,14 @@ fn part_two(input: String) {
             while let Some((i, c)) = citer.next() {
                 if c.is_digit(10) {
                     digits.push(c);
+                    continue;
                 }
+
                 let end = min(line.len(), i + win_size + 1);
                 let slc = line.get(i..end).unwrap();
 
                 for (i, n) in numbers.iter().enumerate() {
+                    check_count += 1;
                     if slc.starts_with(*n) {
                         digits.push_str(&(i + 1).to_string());
                         for _ in 0..n.len(){
@@ -55,7 +60,7 @@ fn part_two(input: String) {
         .reduce(|acc, item| acc + item)
         .unwrap();
 
-    println!("Part two: {}", calibrate);
+    println!("Part two: {}, check_count {}", calibrate, check_count);
 }
 
 fn part_one(input: String) {
