@@ -22,7 +22,7 @@ fn part_two(input: String) {
         .map(|line| {
             let mut digits = String::new();
 
-            let mut citer = line.char_indices().peekable();
+            let mut citer = line.char_indices();
             while let Some((i, c)) = citer.next() {
                 if c.is_digit(10) {
                     digits.push(c);
