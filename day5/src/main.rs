@@ -7,6 +7,9 @@ struct Pair {
     diff: i64,
 }
 
+#[derive(Debug)]
+struct Range(i64, i64);
+
 fn main() {
     let input = fs::read_to_string("input1.txt").unwrap();
 
@@ -17,7 +20,7 @@ fn main() {
 fn part_two(input: String) {
     let mut lines = input.lines();
 
-    let seeds: Vec<i64> = lines
+    let split: Vec<i64> = lines
         .next()
         .unwrap()
         .split(":")
@@ -26,7 +29,12 @@ fn part_two(input: String) {
         .trim()
         .split_whitespace()
         .map(|n| n.parse::<i64>().unwrap())
-        .collect();
+        .collect::<Vec<i64>>();
+    let mut seeds: Vec<_> = split.chunks(2).collect();
+
+    seeds.sort_by(|a, b| {
+        return a[0].cmp(&b[0]);
+    });
 
     lines.next();
 
@@ -36,17 +44,42 @@ fn part_two(input: String) {
     }
 
     let smallest_location = seeds
-        .chunks(2)
-        .inspect(|w| println!("{} {}", w[0], w[1]))
-        .flat_map(|chunk| {
-            (chunk[0]..chunk[0] + chunk[1])
-                .into_iter()
-                .map(|seed| maps.iter().fold(seed, |acc, m| convert(acc, m)))
-        })
-        .min()
-        .unwrap();
+        .iter()
+        .map(|chunk| Range(chunk[0], chunk[1]))
+        .inspect(|r| println!("input {:?}", r))
+        .flat_map(|range| maps.iter().fold(vec![range], |acc, m| convert_range(&acc, m)))
+        .map(|range| range.0)
+        .min().unwrap();
 
     println!("Part two: {}", smallest_location);
+}
+
+fn convert_range(source_ranges: &Vec<Range>, map: &Vec<Pair>) -> Vec<Range> {
+    let mut ranges: Vec<Range> = Vec::new();
+
+    for source in source_ranges {
+        let mut curr = source.0;
+        let source_end = source.0 + source.1;
+
+        for e in map {
+            if curr >= source_end {
+                break;
+            }
+            if curr < e.from {
+                ranges.push(Range(source.0, e.from - source.0));
+                curr = e.from;
+            }
+            if curr >= e.from && curr < e.to {
+                let end = i64::min(e.to, source_end);
+                ranges.push(Range(curr + e.diff, end - curr));
+                curr = end;
+            }
+        }
+        if curr < source_end {
+            ranges.push(Range(curr, source_end - curr));
+        }
+    }
+    ranges
 }
 
 fn part_one(input: String) {
@@ -70,14 +103,14 @@ fn part_one(input: String) {
     }
 
     let smallest_location = seeds
-        .map(|seed| maps.iter().fold(seed, |acc, m| convert(acc, &m)))
+        .map(|seed| maps.iter().fold(seed, |acc, m| part_one_convert(acc, &m)))
         .min()
         .unwrap();
 
     println!("Part one: {}", smallest_location);
 }
 
-fn convert(source: i64, map: &Vec<Pair>) -> i64 {
+fn part_one_convert(source: i64, map: &Vec<Pair>) -> i64 {
     for e in map {
         if source >= e.from && source < e.to {
             return e.diff + source;
