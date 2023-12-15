@@ -26,12 +26,7 @@ fn main() {
             }
             "=" => {
                 let focal_len = seq[op_idx + 1..seq.len()].parse::<usize>().unwrap();
-                if boxes[box_idx].contains_key(lens) {
-                    *boxes[box_idx].get_mut(lens).unwrap() = focal_len;
-                }
-                else{
-                    boxes[box_idx].insert(lens, focal_len);
-                }
+                boxes[box_idx].insert(lens, focal_len);
             }
             _ => {
                 panic!("Unknown op {} seq {}", op, seq);
